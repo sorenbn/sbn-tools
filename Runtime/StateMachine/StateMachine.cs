@@ -11,7 +11,6 @@ namespace SBN.StateMachines
     public class StateMachine<T> where T : class
     {
         private State<T> currentState;
-
         private Dictionary<Type, State<T>> states = new Dictionary<Type, State<T>>();
 
         /// <summary>
@@ -20,6 +19,18 @@ namespace SBN.StateMachines
         public T Context
         {
             get;
+        }
+
+        public State<T> CurrentState
+        {
+            get => currentState;
+            private set => currentState = value;
+        }
+        
+        public Dictionary<Type, State<T>> States
+        {
+            get => states;
+            private set => states = value;
         }
 
         public StateMachine(T context, State<T> initialState)
@@ -38,12 +49,12 @@ namespace SBN.StateMachines
         {
             var type = state.GetType();
 
-            if (!states.ContainsKey(type))
+            if (!States.ContainsKey(type))
             {
                 state.StateMachine = this;
                 state.Context = Context;
 
-                states.Add(type, state);
+                States.Add(type, state);
             }
         }
 
@@ -55,8 +66,8 @@ namespace SBN.StateMachines
         {
             var type = state.GetType();
 
-            if (states.ContainsKey(type))
-                states.Remove(type);
+            if (States.ContainsKey(type))
+                States.Remove(type);
         }
 
         /// <summary>
@@ -65,7 +76,7 @@ namespace SBN.StateMachines
         /// <typeparam name="TState"></typeparam>
         public void ChangeState<TState>() where TState : State<T>
         {
-            if (states.TryGetValue(typeof(TState), out State<T> state))
+            if (States.TryGetValue(typeof(TState), out State<T> state))
             {
                 InternalChangeState(state);
             }
@@ -82,7 +93,7 @@ namespace SBN.StateMachines
         /// <returns></returns>
         public State<T> GetState<TState>()
         {
-            return states.TryGetValue(typeof(TState), out State<T> state) ? state : null;
+            return States.TryGetValue(typeof(TState), out State<T> state) ? state : null;
         }
 
         /// <summary>
@@ -91,12 +102,12 @@ namespace SBN.StateMachines
         /// <param name="deltaTime"></param>
         public void Update(float deltaTime)
         {
-            var state = currentState;
-            currentState.CheckTransitions();
+            var state = CurrentState;
+            CurrentState.CheckTransitions();
 
             // Only update the current state, if it hasn't changed from a transition update
-            if (state == currentState)
-                currentState.UpdateState(deltaTime);
+            if (state == CurrentState)
+                CurrentState.UpdateState(deltaTime);
         }
 
         /// <summary>
@@ -105,9 +116,9 @@ namespace SBN.StateMachines
         /// <param name="state"></param>
         private void InternalChangeState(State<T> state)
         {
-            currentState?.ExitState();
-            currentState = state;
-            currentState.EnterState();
+            CurrentState?.ExitState();
+            CurrentState = state;
+            CurrentState.EnterState();
         }
     }
 }
