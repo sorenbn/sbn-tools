@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace SBN.Events
 {
@@ -15,26 +16,51 @@ namespace SBN.Events
     /// </summary>
     public static class GlobalEvents<TEvent> where TEvent : struct
     {
-        private static HashSet<Action<TEvent>> subscriptions = new HashSet<Action<TEvent>>();
+        private class Subscription : IComparable<Subscription>
+        {
+            public Action<TEvent> Callback;
+            public int ExecutionOrder;
+
+            public Subscription(Action<TEvent> callback, int executionOrder)
+            {
+                Callback = callback;
+                ExecutionOrder = executionOrder;
+            }
+
+            public int CompareTo(Subscription other)
+            {
+                return ExecutionOrder.CompareTo(other.ExecutionOrder);
+            }
+        }
+
+        private static readonly List<Subscription> subscriptions = new();
+        private static List<Subscription> sortedSubscriptions = new();
 
         public static void Publish(TEvent args)
         {
-            // Small 'fix' for preventing change in subscription collection
-            // while an event is already being published
-            var immutableSubscriptions = new HashSet<Action<TEvent>>(subscriptions);
+            // Make a new list, to prevent subcriptions from being removed while an event is being published to all the subscribers.
+            // Could perhaps just simply iterate the list backwards, but test it..
+            sortedSubscriptions.Clear();
+            sortedSubscriptions.AddRange(subscriptions);
+            sortedSubscriptions.Sort();
 
-            foreach (var subscription in immutableSubscriptions)
-                subscription.Invoke(args);
+            for (int i = 0; i < sortedSubscriptions.Count; i++)
+            {
+                sortedSubscriptions[i].Callback.Invoke(args);
+            }
         }
 
-        public static void Subscribe(Action<TEvent> callback)
+        public static void Subscribe(Action<TEvent> callback, int executionOrder = 0)
         {
-            subscriptions.Add(callback);
+            if (subscriptions.Any(s => s.Callback == callback))
+                return;
+
+            subscriptions.Add(new Subscription(callback, executionOrder));
         }
 
         public static void Unsubscribe(Action<TEvent> callback)
         {
-            subscriptions.Remove(callback);
+            subscriptions.RemoveAll(s => s.Callback == callback);
         }
     }
 }
