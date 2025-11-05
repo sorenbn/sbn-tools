@@ -16,12 +16,20 @@ namespace SBN.UITool.Core.Elements.Windows
         [Tooltip("A default back button which will trigger to go back in window history. Can be null if no back button exists for this window.")]
         [SerializeField] private Button defaultBackButton;
 
+        [Tooltip("A default button to be selected when UI input changes to gamepad.")]
+        [SerializeField] private Button defaultSelectedButton;
+
         private UIElement[] uiElements;
 
         public Scene OwnerScene
         {
             get;
             private set;
+        }
+        public Button DefaultSelectedButton 
+        { 
+            get => defaultSelectedButton; 
+            private set => defaultSelectedButton = value; 
         }
 
         protected virtual void OnEnable()
