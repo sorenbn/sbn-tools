@@ -29,7 +29,7 @@ namespace SBN.UITool.Core.Elements.Windows
         public Button DefaultSelectedButton 
         { 
             get => defaultSelectedButton; 
-            private set => defaultSelectedButton = value; 
+            set => defaultSelectedButton = value; 
         }
 
         protected virtual void OnEnable()

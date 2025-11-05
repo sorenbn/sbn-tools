@@ -1,6 +1,6 @@
 {
     "name": "com.sbn.tools",
-    "version": "1.0.51",
+    "version": "1.0.52",
     "displayName": "SBN Tools",
     "description": "A collection of handy unity tools.",
     "unity": "2020.3",
